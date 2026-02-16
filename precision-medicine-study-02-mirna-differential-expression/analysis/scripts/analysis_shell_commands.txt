@@ -1,0 +1,235 @@
+## Codes for the following steps are as follows:
+### Note: Path to the File Directory is Hardcoded please update the File before running the script
+
+## Change directory to slate
+cd /N/slate/msiddhe
+
+## Create a new directory for Assignment-2
+mkdir Assignment-2
+cd Assignment-2
+
+
+## Load the SRA toolkit module to download the files
+module load sra-toolkit
+
+## Download the required samples
+prefetch SRR22269883 SRR22269882 SRR22269881 SRR22269880 SRR22269879 SRR22269878 SRR22269877 SRR22269876 SRR22269875 SRR22269874 SRR22269873 SRR22269872
+
+## Convert the downloaded SRA files to fastq format
+fasterq-dump SRR22269883 SRR22269882 SRR22269881 SRR22269880 SRR22269879 SRR22269878 SRR22269877 SRR22269876 SRR22269875 SRR22269874 SRR22269873 SRR22269872
+
+## Create a new directory for Raw Data
+mkdir Raw_Data
+mv /N/slate/msiddhe/Assignment-2/*.fastq /N/slate/msiddhe/Assignment-2/Raw_Data/
+mv /N/slate/msiddhe/Assignment-2/* /N/slate/msiddhe/Assignment-2/Raw_Data/
+
+## Load FastQC module
+module load fastqc
+
+## Create a directory for FastQC reports
+mkdir fastqc_reports
+
+## Run FastQC on all fastq files
+fastqc /N/slate/msiddhe/Assignment-2/Raw_Data/*.fastq -o /N/slate/msiddhe/Assignment-2/fastqc_reports
+
+## Navigate to your quartz to install multiqc
+$ cd /geode2/home/u060/msiddhe/Quartz
+
+## Make a directory called installations
+$ mkdir installations
+$ cd installations
+
+## Install multiqc
+$ module load python
+$ pip install multiqc
+
+## Add multiqc to your path 
+$ pip show multiqc
+$ nano ~/.bashrc
+$ export PATH="/geode2/home/u060/msiddhe/Quartz/.local/bin:$PATH"
+$ source ~/.bashrc
+
+## Check if it is added to your path
+$ multiqc --version
+cd /N/slate/msiddhe/Assignment-2
+
+## Run multiqc on raw data
+$ multiqc /N/slate/msiddhe/Assignment-2/fastqc_reports
+$ ls
+
+## Trimming Step
+$ conda install -c bioconda trim-galore
+
+$ mkdir  -p /N/slate/msiddhe/Assignment-2/trimmed_reads
+$ cd /N/slate/msiddhe/Assignment-2/Raw_Data
+$ trim_galore --quality 20 --length 30 -o /N/slate/msiddhe/Assignment-2/trimmed_reads /N/slate/msiddhe/Assignment-2/Raw_Data/*.fastq
+
+$ mkdir -p /N/slate/msiddhe/Assignment-2/trimmed_fastqc_reports
+$ cd /N/slate/msiddhe/Assignment-2/trimmed_reads
+$ fastqc /N/slate/msiddhe/Assignment-2/trimmed_reads/*.fq -o /N/slate/msiddhe/Assignment-2/trimmed_fastqc_reports
+
+
+## Download referece genome and genes.gtf file
+$ cd ..
+$ wget http://igenomes.illumina.com.s3-website-us-east-1.amazonaws.com/Homo_sapiens/UCSC/hg38/Homo_sapiens_UCSC_hg38.tar.gz
+$ tar -xzf Homo_sapiens_UCSC_hg38.tar.gz
+
+
+## Activate the HISAT2 environment
+$ conda activate hisat2_env
+
+## HISAT2 Indexing
+cd /N/slate/msiddhe/Assignment-2/hisat2_index
+nano hisat2_index.slurm
+sbatch hisat2_index.slurm
+
+----------------#############-------------
+#!/bin/bash
+
+#SBATCH --mail-user=msiddhe@iu.edu
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=general
+#SBATCH --mem=64gb
+#SBATCH --time=12:00:00
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --job-name=hisat2_indexing
+#SBATCH --output=/N/slate/msiddhe/Assignment-2/hisat2_output/hisat2_indexing_output.log
+#SBATCH --error=/N/slate/msiddhe/Assignment-2/hisat2_output/hisat2_indexing_error.log
+#SBATCH -A c01064
+
+# Activate HISAT2 environment
+source /N/slate/msiddhe/miniconda3/bin/activate hisat2_env
+
+# Define paths
+GENOME_FASTA="/N/slate/msiddhe/Assignment-2/Homo_sapiens/UCSC/hg38/Sequence/WholeGenomeFasta/genome.fa"
+INDEX_DIR="/N/slate/msiddhe/Assignment-2/hisat2_index"
+
+# Run HISAT2 indexing
+hisat2-build "$GENOME_FASTA" "$INDEX_DIR/genome_index"
+
+----------------#############-----------------------------------------------------------------------------------
+
+## READ Alignment
+mkdir -p /N/slate/msiddhe/Assignment-2/hisat2_aligned_reads
+nano hisat2_align_reads.slurm
+sbatch hisat2_align_reads.slurm
+
+----------------#############-------------
+#!/bin/bash
+
+#SBATCH --mail-user=msiddhe@iu.edu
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=general
+#SBATCH --mem=64gb
+#SBATCH --time=12:00:00
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --job-name=hisat2_alignment
+#SBATCH --output=/N/slate/msiddhe/Assignment-2/hisat2_output/hisat2_align_output.log
+#SBATCH --error=/N/slate/msiddhe/Assignment-2/hisat2_output/hisat2_align_error.log
+#SBATCH -A c01064
+
+# Activate HISAT2 environment
+source /N/slate/msiddhe/miniconda3/bin/activate hisat2_env
+
+# Define paths
+INDEX_DIR="/N/slate/msiddhe/Assignment-2/hisat2_index"    # Directory with the HISAT2 index
+INPUT_DIR="/N/slate/msiddhe/Assignment-2/trimmed_reads"   # Directory with trimmed FASTQ files
+OUTPUT_DIR="/N/slate/msiddhe/Assignment-2/hisat2_aligned_reads"  # Directory for SAM output
+
+# Loop over each FASTQ file in the input directory and align
+for read_file in "$INPUT_DIR"/*.fq; do
+    sample_name=$(basename "$read_file" | cut -d '_' -f 1)
+    hisat2 -p 8 -x "$INDEX_DIR/genome_index" -U "$read_file" -S "$OUTPUT_DIR/${sample_name}_aligned.sam"
+done
+
+echo "HISAT2 alignment completed for all samples."
+
+----------------#############------------------------------------------------------------------------
+
+## SAM to BAM Conversion and Sorting
+#!/bin/bash
+
+# Load samtools
+module load samtools
+
+# Define directories
+SAM_DIR="/N/slate/msiddhe/Assignment-2/hisat2_aligned_reads"
+BAM_DIR="/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam"
+
+# Create BAM output directory if it doesn't exist
+mkdir -p "$BAM_DIR"
+
+# Loop over each SAM file, convert to BAM, sort, and index
+for sam_file in "$SAM_DIR"/*.sam; do
+    sample_name=$(basename "$sam_file" .sam)
+    bam_file="$BAM_DIR/${sample_name}_sorted.bam"
+    
+    # Convert SAM to BAM, sort, and index
+    samtools view -@ 8 -bS "$sam_file" | samtools sort -@ 8 -o "$bam_file"
+    samtools index "$bam_file"
+done
+
+echo "SAM to BAM conversion and sorting completed for all samples."
+
+----------------#############---------------------------------------------------------------
+
+## Check BAM output
+ls /N/slate/msiddhe/Assignment-2/hisat2_aligned_bam
+
+## FeatureCounts Directory Creation
+mkdir -p /N/slate/msiddhe/Assignment-2/HisatFeaturecounts
+nano run_hisat_featurecounts.sh
+chmod +x run_hisat_featurecounts.sh
+./run_hisat_featurecounts.sh
+----------------#############---------------
+#!/bin/bash
+
+# Load the Subread module for FeatureCounts
+module load subread
+
+# Define paths
+BAM_DIR="/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam"
+OUTPUT_DIR="/N/slate/msiddhe/Assignment-2/HisatFeaturecounts"
+ANNOTATION_FILE="/N/slate/msiddhe/Assignment-2/Homo_sapiens/UCSC/hg38/Annotation/Archives/archive-2015-08-14-08-18-15/Genes/genes.gtf"
+
+# Verify BAM directory
+if [ ! -d "$BAM_DIR" ] || [ -z "$(ls -A "$BAM_DIR"/*.bam 2>/dev/null)" ]; then
+  echo "Error: BAM directory is empty or does not exist at $BAM_DIR"
+  exit 1
+fi
+
+# Verify annotation file
+if [ ! -f "$ANNOTATION_FILE" ]; then
+  echo "Error: Annotation file not found at $ANNOTATION_FILE"
+  exit 1
+fi
+
+----------------#############----------------------------------------------------------------------
+
+## Create output directory if it doesn’t exist
+mkdir -p "$OUTPUT_DIR"
+
+## Run FeatureCounts
+featureCounts -T 8 -t exon -g gene_id -a "$ANNOTATION_FILE" -o "$OUTPUT_DIR/miRNA_counts.txt" "$BAM_DIR"/*.bam
+
+## Check if output was created
+if [ -f "$OUTPUT_DIR/miRNA_counts.txt" ]; then
+  echo "FeatureCounts completed successfully. Results are saved in $OUTPUT_DIR/miRNA_counts.txt"
+else
+  echo "Error: FeatureCounts did not generate the output file."
+fi
+
+----------------#############---------------------------------------------------------------------------------------------------------------------
+
+## Transfer Gene Count file to local machine
+scp msiddhe@quartz.uits.iu.edu:/N/slate/msiddhe/Assignment-2/hisat2_index/HisatFeaturecounts/miRNA_counts.txt C:/Users/mmsid/Downloads/
+scp msiddhe@quartz.uits.iu.edu:/N/slate/msiddhe/Assignment-2/hisat2_index/HisatFeaturecounts/miRNA_counts.txt.summary C:/Users/mmsid/Downloads/
+
+
+
+
+

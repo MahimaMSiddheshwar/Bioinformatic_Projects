@@ -1,0 +1,15 @@
+Status	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269872_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269873_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269874_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269875_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269876_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269877_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269878_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269879_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269880_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269881_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269882_aligned_sorted.bam	/N/slate/msiddhe/Assignment-2/hisat2_aligned_bam/SRR22269883_aligned_sorted.bam
+Assigned	126130	87473	271614	298810	248242	923088	201649	79186	76755	797103	441604	182619
+Unassigned_Unmapped	841041	279279	215370	277993	153474	790599	217563	133255	267851	1441607	1534995	2052775
+Unassigned_Read_Type	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	6943179	4188419	2994773	3774026	1629122	9695529	2633045	756792	2210921	9737435	4438376	2025127
+Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	130220	62211	43278	53920	33146	148893	83829	26391	70454	241805	122857	67131
+Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Ambiguity	1071	975	1848	1035	1085	6167	2853	775	719	6814	3845	2052
