@@ -30,4 +30,5 @@ A curated collection of bioinformatics studies spanning systems biology, high-th
 3. Run notebooks/scripts after updating local paths if needed.
 
 ## Author
-Mahima Mahabaleshwar Siddheshwar
+Mahima M Siddheshwar
+
